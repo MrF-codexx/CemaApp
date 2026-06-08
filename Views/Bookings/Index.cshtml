@@ -1,0 +1,393 @@
+@model CemaApp.ViewModels.UserBookingsViewModel
+@{
+    ViewData["Title"] = "My Profile & Bookings";
+}
+
+<style>
+    .profile-card {
+        background: linear-gradient(145deg, #1a1a1a, #121212);
+        border: 1px solid #262626;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: #dc2626;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .profile-info h2 {
+        margin: 0;
+        font-weight: 700;
+        color: white;
+    }
+
+    .profile-info p {
+        margin: 0;
+        color: #8b8b8b;
+    }
+
+    .profile-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        border-top: 1px solid #262626;
+        padding-top: 20px;
+    }
+
+    .detail-item label {
+        display: block;
+        color: #555;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    .detail-item span {
+        color: #e0e0e0;
+        font-weight: 500;
+    }
+
+    .bookings-section h3 {
+        font-weight: 700;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .bookings-section h3::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #262626;
+    }
+
+    .booking-card {
+        background: #161616;
+        border: 1px solid #262626;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .booking-card:hover {
+        border-color: #dc2626;
+        transform: translateY(-2px);
+    }
+
+    .booking-card.pending-card {
+        border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .booking-main {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .movie-poster-sm {
+        width: 110px;
+        height: 165px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #262626;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+
+    .booking-info h4 {
+        margin: 0 0 10px 0;
+        font-size: 22px;
+        color: white;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .booking-meta {
+        font-size: 15px;
+        color: #a0a0a0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .booking-meta span {
+        margin-right: 0;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-confirmed { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .status-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .status-cancelled { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .btn-details {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #e0e0e0;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+    .btn-details:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-remove {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #8b8b8b;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: 0.3s;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-remove:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-cancel {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        color: #ef4444;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: 0.3s;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .btn-cancel:hover {
+        background: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
+
+    .btn-resume {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #f59e0b;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: 0.3s;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-resume:hover {
+        background: #f59e0b;
+        color: black;
+        border-color: #f59e0b;
+    }
+
+    .pending-timer {
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        font-weight: 700;
+        color: #f59e0b;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: #121212;
+        border-radius: 16px;
+        border: 2px dashed #262626;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        color: #333;
+        margin-bottom: 20px;
+        display: block;
+    }
+</style>
+
+<div class="container py-4">
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show bg-success text-white border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Profile Section -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                @Model.User.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <div class="profile-info">
+                <h2>@Model.User.FullName</h2>
+            </div>
+        </div>
+        <div class="profile-details">
+            <div class="detail-item">
+                <label>Email Address</label>
+                <span>@Model.User.Email</span>
+            </div>
+            <div class="detail-item">
+                <label>Date of Birth</label>
+                <span>@Model.User.DateOfBirth.ToString("MMMM dd, yyyy")</span>
+            </div>
+            <div class="detail-item">
+                <label>Total Bookings</label>
+                <span>@Model.Bookings.Count</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Bookings (Pending) -->
+    @if (Model.PendingBookings != null && Model.PendingBookings.Any())
+    {
+        <div class="bookings-section">
+            <h3><span class="text-warning">⏳ Current Bookings</span></h3>
+
+            @foreach (var booking in Model.PendingBookings)
+            {
+                var remainingSeconds = (int)(booking.BookingDate.AddMinutes(7) - DateTime.Now).TotalSeconds;
+                if (remainingSeconds < 0) { remainingSeconds = 0; }
+
+                <div class="booking-card pending-card">
+                    <div class="booking-main">
+                        <img src="/images/posters/@booking.Screening.Movie.PosterUrl" alt="@booking.Screening.Movie.Title" class="movie-poster-sm" onerror="this.src='/images/no-poster.jpg'" />
+                        <div class="booking-info">
+                            <h4>@booking.Screening.Movie.Title</h4>
+                            <div class="booking-meta">
+                                <span><i class="bi bi-calendar-event"></i> @booking.Screening.StartTime.ToString("MMM dd, HH:mm")</span>
+                                <span><i class="bi bi-geo-alt"></i> @booking.Screening.Hall.Name</span>
+                                <span><i class="bi bi-ticket-perforated"></i> 
+                                    @string.Join(", ", booking.BookingSeats.Select(s => $"{s.Seat.Row}{s.Seat.Number}"))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end justify-content-center gap-2" style="min-width: 140px;">
+                        <div class="fw-bold text-white fs-4 mb-1">@booking.TotalPrice.ToString("C")</div>
+                        <div class="pending-timer text-center w-100 mb-2" data-seconds="@remainingSeconds">--:--</div>
+                        <a asp-controller="Booking" asp-action="SelectSeats" asp-route-screeningId="@booking.ScreeningId" class="btn-resume w-100 text-center py-2">Resume</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Bookings History -->
+    <div class="bookings-section">
+        <h3>Booking History</h3>
+
+        @if (Model.Bookings != null && Model.Bookings.Any())
+        {
+            @foreach (var booking in Model.Bookings)
+            {
+                <div class="booking-card">
+                    <div class="booking-main">
+                        <img src="/images/posters/@booking.Screening.Movie.PosterUrl" alt="@booking.Screening.Movie.Title" class="movie-poster-sm" onerror="this.src='/images/no-poster.jpg'" />
+                        <div class="booking-info">
+                            <h4>@booking.Screening.Movie.Title</h4>
+                            <div class="booking-meta">
+                                <span><i class="bi bi-calendar-event"></i> @booking.Screening.StartTime.ToString("MMM dd, HH:mm")</span>
+                                <span><i class="bi bi-geo-alt"></i> @booking.Screening.Hall.Name</span>
+                                <span><i class="bi bi-ticket-perforated"></i> 
+                                    @string.Join(", ", booking.BookingSeats.Select(s => $"{s.Seat.Row}{s.Seat.Number}"))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end justify-content-center gap-2" style="min-width: 140px;">
+                        <div class="fw-bold text-white fs-4 mb-1">@booking.TotalPrice.ToString("C")</div>
+                        <div class="status-badge status-@booking.Status.ToString().ToLower() w-100 text-center mb-2" style="font-size: 11px; letter-spacing: 0.5px;">
+                            @booking.Status
+                        </div>
+                        <a asp-action="Details" asp-route-id="@booking.Id" class="btn-details w-100 text-center py-2">Details</a>
+                        @if (booking.Status == CemaApp.Models.BookingStatus.Confirmed)
+                        {
+                            <form asp-action="Cancel" asp-route-id="@booking.Id" method="post" class="w-100 m-0" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-cancel w-100 py-2">Cancel</button>
+                            </form>
+                        }
+                        else if (booking.Status == CemaApp.Models.BookingStatus.Cancelled)
+                        {
+                            <form asp-action="Remove" asp-route-id="@booking.Id" method="post" class="w-100 m-0" onsubmit="return confirm('Are you sure you want to remove this booking from your history?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-remove w-100 py-2">Remove</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-ticket-detailed"></i>
+                <h4>No bookings found</h4>
+                <p class="text-muted">You haven't made any bookings yet. Start exploring movies!</p>
+                <a asp-controller="Movies" asp-action="Index" class="btn btn-danger mt-3">Browse Movies</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Live countdown timers for pending bookings
+        document.querySelectorAll('.pending-timer').forEach(timer => {
+            let seconds = parseInt(timer.dataset.seconds);
+
+            function tick() {
+                if (seconds <= 0) {
+                    timer.innerText = 'Expired';
+                    timer.style.color = '#ef4444';
+                    return;
+                }
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                timer.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                seconds--;
+            }
+
+            tick();
+            setInterval(tick, 1000);
+        });
+    </script>
+}

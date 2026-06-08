@@ -1,0 +1,176 @@
+@model CemaApp.Models.Booking
+@{
+    ViewData["Title"] = "Booking Details";
+}
+
+<style>
+    .details-container {
+        max-width: 800px;
+        margin: 40px auto;
+        background: #161616;
+        border: 1px solid #262626;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .details-header {
+        background: linear-gradient(to bottom, rgba(220, 38, 38, 0.2), #161616);
+        padding: 40px;
+        text-align: center;
+        border-bottom: 1px solid #262626;
+    }
+
+    .movie-title {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        color: white;
+    }
+
+    .booking-id {
+        color: #8b8b8b;
+        font-family: monospace;
+        letter-spacing: 2px;
+    }
+
+    .details-content {
+        padding: 40px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .info-box {
+        background: #1f1f1f;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #2b2b2b;
+    }
+
+    .info-box label {
+        display: block;
+        color: #666;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+    }
+
+    .info-box p {
+        margin: 0;
+        font-size: 18px;
+        color: #e0e0e0;
+        font-weight: 600;
+    }
+
+    .seats-grid {
+        background: #121212;
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid #262626;
+        margin-bottom: 40px;
+    }
+
+    .seat-badge {
+        display: inline-block;
+        background: #dc2626;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 6px;
+        margin: 5px;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .price-summary {
+        border-top: 2px dashed #333;
+        padding-top: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-label {
+        font-size: 20px;
+        color: #8b8b8b;
+    }
+
+    .total-amount {
+        font-size: 36px;
+        font-weight: 800;
+        color: #dc2626;
+    }
+
+    .footer-actions {
+        padding: 20px 40px;
+        background: #111;
+        border-top: 1px solid #262626;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-back {
+        color: #8b8b8b;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-back:hover {
+        color: white;
+    }
+</style>
+
+<div class="container">
+    <div class="details-container">
+        <div class="details-header">
+            <div class="movie-title">@Model.Screening.Movie.Title</div>
+            <div class="booking-id">BOOKING #@Model.Id.ToString("D6")</div>
+        </div>
+
+        <div class="details-content">
+            <div class="info-grid">
+                <div class="info-box">
+                    <label>Date & Time</label>
+                    <p>@Model.Screening.StartTime.ToString("dddd, MMM dd, yyyy")</p>
+                    <p class="text-danger">@Model.Screening.StartTime.ToString("HH:mm")</p>
+                </div>
+                <div class="info-box">
+                    <label>Cinema Hall</label>
+                    <p>@Model.Screening.Hall.Name</p>
+                    <p class="small text-muted">@(Model.Screening.Hall.TotalRows * Model.Screening.Hall.SeatsPerRow) Seats Total</p>
+                </div>
+            </div>
+
+            <div class="seats-grid">
+                <label class="text-muted small text-uppercase mb-3 d-block">Selected Seats</label>
+                @foreach (var bs in Model.BookingSeats)
+                {
+                    <div class="seat-badge">@bs.Seat.Row@bs.Seat.Number</div>
+                }
+            </div>
+
+            <div class="price-summary">
+                <div class="total-label">Total Amount Paid</div>
+                <div class="total-amount">@Model.TotalPrice.ToString("C")</div>
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <a asp-action="Index" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Back to My Bookings
+            </a>
+            <div class="status-badge status-@Model.Status.ToString().ToLower()">
+                @Model.Status
+            </div>
+        </div>
+    </div>
+</div>

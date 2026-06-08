@@ -1,0 +1,49 @@
+@model CemaApp.Models.Screening
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4">Schedule a Movie</h2>
+                    
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="MovieId" class="form-label text-uppercase small fw-bold">Select Movie</label>
+                            <select asp-for="MovieId" class="form-select bg-secondary text-white border-0 py-2" asp-items="ViewBag.MovieId"></select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="HallId" class="form-label text-uppercase small fw-bold">Select Hall</label>
+                            <select asp-for="HallId" class="form-select bg-secondary text-white border-0 py-2" asp-items="ViewBag.HallId"></select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="StartTime" class="form-label text-uppercase small fw-bold">Start Time</label>
+                                <input asp-for="StartTime" class="form-control bg-secondary text-white border-0 py-2" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                                <span asp-validation-for="StartTime" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label asp-for="Price" class="form-label text-uppercase small fw-bold">Price ($)</label>
+                                <input asp-for="Price" class="form-control bg-secondary text-white border-0 py-2" type="number" step="0.01" />
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 d-flex gap-2">
+                            <button type="submit" class="btn btn-cema btn-lg flex-fill">Create Showtime</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

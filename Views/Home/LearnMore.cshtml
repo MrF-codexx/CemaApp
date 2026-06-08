@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Learn More";
+}
+
+<style>
+    .learn-more-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    .learn-more-title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: white;
+    }
+    .learn-more-subtitle {
+        color: #dc2626;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+    .learn-more-content p {
+        color: #cfcfcf;
+        font-size: 18px;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+    .learn-more-feature {
+        background: #181818;
+        border: 1px solid #262626;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .learn-more-feature h3 {
+        color: white;
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+    .learn-more-feature p {
+        color: #9ca3af;
+        margin-bottom: 0;
+    }
+</style>
+
+<div class="learn-more-container">
+    <div class="learn-more-subtitle">About CEMA Cinema</div>
+    <h1 class="learn-more-title">A Modern Movie Experience</h1>
+    
+    <div class="learn-more-content">
+        <p>
+            Welcome to CEMA Cinema, your ultimate destination for the latest blockbusters and premium entertainment. 
+            Our mission is to bring the magic of the movies to life with state-of-the-art facilities, crystal-clear 
+            audio, and breathtaking visuals.
+        </p>
+        
+        <div class="learn-more-feature">
+            <h3>Premium Seating</h3>
+            <p>Enjoy our luxurious seating arrangements, designed for maximum comfort so you can fully immerse yourself in the film.</p>
+        </div>
+        
+        <div class="learn-more-feature">
+            <h3>Instant Booking</h3>
+            <p>Our modern platform allows you to browse showtimes, pick your exact seats, and purchase tickets online in seconds.</p>
+        </div>
+
+        <div class="learn-more-feature">
+            <h3>High Quality Visuals</h3>
+            <p>Experience movies the way they were meant to be seen with cutting-edge IMAX and standard projection technologies.</p>
+        </div>
+
+        <div class="mt-5 text-center">
+            <a asp-controller="Movies" asp-action="Index" class="btn btn-cema btn-lg">Browse Movies</a>
+        </div>
+    </div>
+</div>

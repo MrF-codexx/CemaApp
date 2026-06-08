@@ -1,0 +1,231 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<style>
+    body {
+        background-color: #0f0f0f;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+        overflow-x: hidden;
+    }
+
+    .hero-section {
+        height: 92vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 8%;
+        margin: 0;
+        position: relative;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, /* light at top */
+        rgba(0,0,0,0.4) 50%, rgba(15,15,15,0.95) 100% /* dark at bottom */
+        ), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1974&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+    }
+
+    .hero-content {
+        max-width: 650px;
+    }
+
+    .hero-subtitle {
+        color: #dc2626;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .hero-title {
+        font-size: 72px;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 25px;
+    }
+
+    .hero-text {
+        color: #cfcfcf;
+        font-size: 18px;
+        line-height: 1.8;
+        margin-bottom: 35px;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn-now {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+        .btn-now:hover {
+            background: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-secondary-custom {
+        background: transparent;
+        color: white;
+        border: 1px solid #444;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+        .btn-secondary-custom:hover {
+            border-color: white;
+            color: white;
+        }
+
+    /* FEATURE SECTION */
+    .features-section {
+        padding: 80px 8%;
+    }
+
+    .feature-card {
+        background: #181818;
+        border: 1px solid #262626;
+        border-radius: 18px;
+        padding: 30px;
+        transition: 0.3s;
+        height: 100%;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #dc2626;
+        }
+
+    .feature-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .feature-text {
+        color: #9ca3af;
+        line-height: 1.7;
+    }
+
+    @@media(max - width: 768px)
+
+    {
+
+        .hero-title {
+            font-size: 48px;
+        }
+
+        .hero-text {
+            font-size: 16px;
+        }
+
+        .hero-section {
+            padding: 0 6%;
+        }
+    }
+</style>
+
+<!-- HERO -->
+<section class="hero-section">
+
+    <div class="hero-content">
+
+        <div class="hero-subtitle">
+            Welcome To CEMA Cinema
+        </div>
+
+        <h1 class="hero-title">
+            Experience Movies Like Never Before
+        </h1>
+
+        <p class="hero-text">
+            Discover the latest blockbusters, book tickets instantly,
+            and enjoy a modern cinematic experience from anywhere.
+        </p>
+
+        <div class="hero-buttons">
+            <a asp-controller="Movies"
+                   asp-action="Index"
+                   class="btn-now">
+                Playing Now
+            </a>
+
+            <a asp-controller="Home"
+                   asp-action="LearnMore"
+                   class="btn-secondary-custom">
+                Learn More
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="feature-card">
+
+                <div class="feature-title">
+                    Latest Movies
+                </div>
+
+                <div class="feature-text">
+                    Browse all current and upcoming movies with trailers,
+                    ratings, and showtimes.
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+
+                <div class="feature-title">
+                    Easy Booking
+                </div>
+
+                <div class="feature-text">
+                    Reserve your favorite seats quickly with a simple
+                    and modern booking experience.
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-card">
+
+                <div class="feature-title">
+                    Premium Experience
+                </div>
+
+                <div class="feature-text">
+                    Enjoy high-quality visuals, comfortable seats,
+                    and unforgettable entertainment.
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</section>

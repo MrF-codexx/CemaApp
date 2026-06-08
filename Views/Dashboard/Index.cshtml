@@ -1,0 +1,234 @@
+@model CemaApp.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<style>
+    .stat-card {
+        background: linear-gradient(145deg, #1a1a1a, #121212);
+        border: 1px solid #262626;
+        border-radius: 16px;
+        padding: 24px;
+        transition: 0.3s ease;
+    }
+
+    .stat-card:hover {
+        border-color: #dc2626;
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: #8b8b8b;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .dashboard-card {
+        background: #161616;
+        border: 1px solid #262626;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .card-header-custom {
+        padding: 20px 24px;
+        border-bottom: 1px solid #262626;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .popular-movie-img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .table-dark-custom {
+        background: transparent;
+        margin: 0;
+    }
+
+    .table-dark-custom th {
+        background: #1a1a1a;
+        border-bottom: 1px solid #262626;
+        color: #8b8b8b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 16px 24px;
+    }
+
+    .table-dark-custom td {
+        padding: 16px 24px;
+        border-bottom: 1px solid #262626;
+        vertical-align: middle;
+        color: #e0e0e0;
+    }
+
+    .status-badge-sm {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="fw-bold m-0">Admin Overview</h1>
+        <div class="text-muted">Last updated: @DateTime.Now.ToString("HH:mm")</div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success-subtle text-success">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-value">@Model.TotalRevenue.ToString("C0")</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-danger-subtle text-danger">
+                    <i class="bi bi-ticket-perforated"></i>
+                </div>
+                <div class="stat-value">@Model.TotalBookings</div>
+                <div class="stat-label">Confirmed Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary-subtle text-primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">@Model.TotalUsers</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning-subtle text-warning">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="stat-value">@Model.AverageOccupancyRate.ToString("F1")%</div>
+                <div class="stat-label">Avg. Occupancy</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Most Popular Movie -->
+        <div class="col-lg-4">
+            <div class="dashboard-card h-100">
+                <div class="card-header-custom">
+                    <h5 class="fw-bold m-0">Top Performer</h5>
+                    <span class="badge bg-danger">Best Seller</span>
+                </div>
+                <div class="p-4 text-center">
+                    @if (Model.MostPopularMovie != null)
+                    {
+                        <img src="/images/posters/@Model.MostPopularMovie.PosterUrl" class="popular-movie-img mb-3" alt="@Model.MostPopularMovie.Title">
+                        <h4 class="fw-bold">@Model.MostPopularMovie.Title</h4>
+                        <div class="text-muted mb-3">@Model.MostPopularMovie.Genre</div>
+                        <div class="d-flex justify-content-around bg-dark p-3 rounded-3">
+                            <div>
+                                <div class="small text-muted">Bookings</div>
+                                <div class="fw-bold">@Model.PopularMovieBookingCount</div>
+                            </div>
+                            <div class="border-start border-secondary"></div>
+                            <div>
+                                <div class="small text-muted">Status</div>
+                                <div class="text-success fw-bold">Active</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="py-5 text-muted">No data available</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="col-lg-8">
+            <div class="dashboard-card h-100">
+                <div class="card-header-custom">
+                    <h5 class="fw-bold m-0">Recent Activity</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark-custom">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Movie</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in Model.RecentBookings)
+                            {
+                                <tr>
+                                    <td>@booking.UserEmail</td>
+                                    <td class="fw-bold">@booking.MovieTitle</td>
+                                    <td class="small">@booking.BookingDate.ToString("MMM dd, HH:mm")</td>
+                                    <td class="text-success fw-bold">@booking.Amount.ToString("C")</td>
+                                    <td>
+                                        <span class="status-badge-sm @(booking.Status == BookingStatus.Confirmed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                            @(booking.Status == BookingStatus.RemovedByUser ? "Cancelled" : booking.Status.ToString())
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.RecentBookings.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">No recent bookings found</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 text-center border-top border-secondary">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <a asp-controller="Movies" asp-action="Index" class="btn btn-sm btn-dark w-100">Manage Movies</a>
+                        </div>
+                        <div class="col-4">
+                            <a asp-controller="Halls" asp-action="Index" class="btn btn-sm btn-dark w-100">Manage Halls</a>
+                        </div>
+                        <div class="col-4">
+                            <a asp-controller="Screenings" asp-action="Index" class="btn btn-sm btn-dark w-100">Manage Screenings</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

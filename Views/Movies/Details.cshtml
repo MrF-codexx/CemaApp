@@ -1,0 +1,84 @@
+@model CemaApp.Models.Movie
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <img src="/images/posters/@Model.PosterUrl" class="img-fluid rounded-3 shadow-lg border border-secondary" alt="@Model.Title">
+        </div>
+        <div class="col-md-8 ps-lg-5">
+            <h1 class="display-3 fw-bold">@Model.Title</h1>
+            <div class="mb-4">
+                <span class="badge bg-danger p-2 px-3">@Model.Genre</span>
+                <span class="ms-3 text-muted"><i class="bi bi-clock"></i> @Model.DurationMinutes Minutes</span>
+                <span class="ms-3 text-muted"><i class="bi bi-calendar3"></i> @Model.ReleaseDate.Year</span>
+            </div>
+
+            <h5 class="fw-bold text-uppercase border-bottom border-secondary pb-2 mb-3" style="letter-spacing: 2px;">Synopsis</h5>
+            <p class="lead text-secondary">@Model.Description</p>
+
+            @if (!string.IsNullOrEmpty(Model.TrailerUrl))
+            {
+                <h5 class="fw-bold text-uppercase border-bottom border-secondary pb-2 mb-3 mt-4" style="letter-spacing: 2px;">Trailer</h5>
+                <div class="ratio ratio-16x9 mb-4 shadow-lg rounded overflow-hidden">
+                    @{
+                        var videoId = "";
+                        if (Model.TrailerUrl.Contains("v="))
+                        {
+                            videoId = Model.TrailerUrl.Split("v=")[1].Split("&")[0];
+                        }
+                        else if (Model.TrailerUrl.Contains("youtu.be/"))
+                        {
+                            videoId = Model.TrailerUrl.Split("youtu.be/")[1].Split("?")[0];
+                        }
+                        else if (Model.TrailerUrl.Contains("embed/"))
+                        {
+                            videoId = Model.TrailerUrl.Split("embed/")[1].Split("?")[0];
+                        }
+                    }
+                    @if (!string.IsNullOrEmpty(videoId))
+                    {
+                        <iframe src="https://www.youtube.com/embed/@videoId" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    }
+                    else
+                    {
+                        <div class="bg-dark d-flex align-items-center justify-content-center text-muted">
+                            Invalid Trailer URL
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="mt-5 p-4 bg-dark rounded border border-secondary shadow-lg">
+                <h4 class="fw-bold mb-4 text-uppercase" style="letter-spacing: 1px;">Available Showtimes</h4>
+                
+                @if (Model.Screenings != null && Model.Screenings.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var screening in Model.Screenings.OrderBy(s => s.StartTime))
+                        {
+                            <div class="col-6 col-md-4">
+                                <a asp-controller="Booking" asp-action="SelectSeats" asp-route-screeningId="@screening.Id" 
+                                   class="btn btn-outline-danger w-100 py-3 transition-hover">
+                                    <div class="fw-bold fs-5">@screening.StartTime.ToString("HH:mm")</div>
+                                    <div class="small text-muted">@screening.Hall.Name</div>
+                                    <div class="text-success mt-1">$@screening.Price</div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+                        <p class="text-muted mb-0">No showtimes scheduled yet. Check back soon!</p>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Screenings" asp-action="Create" class="btn btn-sm btn-outline-secondary mt-3">Add Showtime</a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

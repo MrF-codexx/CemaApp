@@ -1,0 +1,47 @@
+@model IEnumerable<CemaApp.Models.Screening>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold">Showtime Schedule</h1>
+        <a asp-action="Create" class="btn btn-cema btn-lg">Schedule Screening</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle border-secondary shadow">
+            <thead class="bg-secondary text-white text-uppercase small">
+                <tr>
+                    <th class="py-3 px-4">Movie</th>
+                    <th class="py-3">Hall</th>
+                    <th class="py-3">Start Time</th>
+                    <th class="py-3">Price</th>
+                    <th class="py-3 text-end px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center">
+                                <img src="/images/posters/@item.Movie.PosterUrl" class="rounded" style="width: 40px; height: 60px; object-fit: cover;" />
+                                <div class="ms-3">
+                                    <h6 class="mb-0 fw-bold">@item.Movie.Title</h6>
+                                    <span class="text-muted small">@item.Movie.DurationMinutes mins</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@item.Hall.Name</td>
+                        <td>
+                            <div class="fw-bold">@item.StartTime.ToShortDateString()</div>
+                            <div class="text-danger small">@item.StartTime.ToShortTimeString()</div>
+                        </td>
+                        <td class="text-success fw-bold">$@item.Price</td>
+                        <td class="text-end px-4">
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">Cancel</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

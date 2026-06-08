@@ -1,0 +1,168 @@
+@using Microsoft.AspNetCore.Identity
+@using CemaApp.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CemaApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CemaApp.styles.css" asp-append-version="true" />
+
+    <style>
+            body {
+                background-color: #0f0f0f;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                margin: 0;
+            }
+
+            main {
+                flex: 1;
+            }
+
+            .cinema-navbar {
+                background-color: #121212;
+                border-bottom: 1px solid #262626;
+                padding: 14px 0;
+                position: relative;
+                z-index: 1050;
+            }
+
+            .cinema-logo {
+                color: #ffffff !important;
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: 1px;
+                text-decoration: none;
+            }
+
+                .cinema-logo span {
+                    color: #dc2626;
+                }
+
+            .navbar-nav .nav-link {
+                color: #b3b3b3 !important;
+                margin-left: 18px;
+                transition: 0.3s;
+                font-weight: 500;
+            }
+
+                .navbar-nav .nav-link:hover {
+                    color: white !important;
+                }
+
+            .cinema-footer {
+                background-color: #121212;
+                border-top: 1px solid #262626;
+                padding: 20px 0;
+                margin-top: auto; 
+            }
+
+                .cinema-footer p,
+                .cinema-footer a {
+                    color: #8b8b8b;
+                    text-decoration: none;
+                    margin: 0;
+                }
+
+                    .cinema-footer a:hover {
+                        color: white;
+                    }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark cinema-navbar">
+            <div class="container-fluid px-4">
+                <a class="cinema-logo navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    CEMA<span>.</span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Movies" asp-action="Index">Movies</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="LearnMore">Learn More</a>
+                        </li>
+
+                        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-danger" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin Panel
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Movies" asp-action="Create">Add New Movie</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Halls" asp-action="Index">Manage Halls</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Screenings" asp-action="Index">Manage Screenings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="AllBookings">View All Bookings</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">Full Dashboard</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Bookings" asp-action="Index">Profile</a>
+                            </li>
+                            <li class="nav-item">
+                                <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="nav-link btn btn-link border-0" style="background: none;">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+   
+    <main role="main">
+        <div class="container-fluid px-4 py-3">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="cinema-footer">
+        <div class="container-fluid text-center">
+            &copy; 2026 - CemaApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

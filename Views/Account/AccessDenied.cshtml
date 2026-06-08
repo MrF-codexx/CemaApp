@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+}
+<style>
+    .btn-cinema {
+        display: inline-block;
+        padding: 10px 22px;
+        border-radius: 10px;
+        background: #dc2626;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.3s;
+        border: 1px solid #dc2626;
+    }
+
+        .btn-cinema:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+            transform: translateY(-2px);
+        }
+</style>
+<div class="text-center mt-5">
+    <h1 class="text-danger">Access Denied</h1>
+    <p class="lead">You do not have permission to view this resource.</p>
+    <a asp-controller="Home"
+           asp-action="Index"
+           class="btn-cinema mt-3">
+        Return Home
+    </a>
+</div>

@@ -1,0 +1,279 @@
+@model CemaApp.Models.Screening
+
+@{
+    ViewData["Title"] = "Select Your Seats";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar: Movie Info -->
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary shadow sticky-top" style="top: 20px;">
+                <img src="/images/posters/@Model.Movie.PosterUrl" class="card-img-top" alt="@Model.Movie.Title">
+                <div class="card-body">
+                    <h5 class="fw-bold">@Model.Movie.Title</h5>
+                    <p class="text-muted small">@Model.Hall.Name | @Model.StartTime.ToString("MMM dd, HH:mm")</p>
+                    <hr class="border-secondary">
+                    
+                    <div id="timerContainer" class="text-center p-3 mb-3 rounded bg-secondary-subtle border border-danger">
+                        <div class="text-uppercase small fw-bold text-danger">Time remaining</div>
+                        <div id="countdown" class="display-6 fw-bold text-white">07:00</div>
+                    </div>
+
+                    <div id="selectionSummary">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Selected:</span>
+                            <span id="selectedCount" class="fw-bold">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 text-success">
+                            <span>Total Price:</span>
+                            <span id="totalPrice" class="fw-bold">$0.00</span>
+                        </div>
+                        <form asp-action="ConfirmBooking" method="post">
+                            <input type="hidden" name="screeningId" value="@Model.Id" />
+                            <div id="selectedSeatsInputs"></div>
+                            <button type="submit" id="confirmBtn" class="btn btn-cema w-100 btn-lg disabled">Confirm Booking</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main: Seat Grid -->
+        <div class="col-md-9 ps-lg-5">
+            <div class="cinema-room text-center">
+                <div class="screen-container mb-5">
+                    <div class="screen shadow-lg">SCREEN</div>
+                </div>
+
+                <div id="seatGrid" class="d-flex flex-column gap-2 align-items-center">
+                    <!-- Seats injected via JS -->
+                    <div class="spinner-border text-danger py-5" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <div class="legend mt-5 d-flex justify-content-center gap-4 border-top border-secondary pt-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="seat-sample available"></div> <span class="small">Available</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="seat-sample selected"></div> <span class="small">Selected</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="seat-sample locked"></div> <span class="small">In Progress</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="seat-sample booked"></div> <span class="small">Booked</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .screen-container { perspective: 500px; }
+        .screen {
+            height: 50px; background: linear-gradient(to bottom, #fff, #888);
+            transform: rotateX(-30deg); box-shadow: 0 10px 20px rgba(255,255,255,0.2);
+            border-radius: 5px; color: #333; font-weight: bold; line-height: 50px;
+        }
+        .seat {
+            width: 35px; height: 35px; background-color: #333; border-radius: 5px 5px 0 0;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center;
+            justify-content: center; font-size: 10px; color: transparent;
+        }
+        .seat:hover:not(.booked):not(.locked) { background-color: #555; color: white; }
+        .seat.available { background-color: #22c55e; }
+        .seat.selected { background-color: #eab308; color: black; box-shadow: 0 0 10px #eab308; }
+        .seat.locked { background-color: #ef4444; opacity: 0.5; cursor: not-allowed; }
+        .seat.booked { background-color: #4b5563; cursor: not-allowed; }
+        .seat-sample { width: 15px; height: 15px; border-radius: 3px; }
+        .row-label { width: 30px; font-weight: bold; color: #666; }
+    </style>
+
+    <script>
+        const screeningId = @Model.Id;
+        const ticketPrice = @Model.Price.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        let selectedSeats = [];
+        let timerSeconds = @ViewBag.RemainingSeconds; // Calculated by server from existing pending booking
+        const inFlightToggles = new Set();
+
+        function updateUI() {
+            fetch(`/Booking/GetSeats?screeningId=${screeningId}`)
+                .then(res => res.json())
+                .then(data => renderGrid(data));
+        }
+
+        function renderGrid(seats) {
+            // Update selectedSeats list based on server state, but preserve any active in-flight selections
+            const nonInFlightSeats = seats.filter(s => !inFlightToggles.has(s.id));
+            const serverSelected = nonInFlightSeats.filter(s => s.state === 'Selected').map(s => s.id);
+            const optimisticSelected = selectedSeats.filter(id => inFlightToggles.has(id));
+            selectedSeats = [...new Set([...serverSelected, ...optimisticSelected])];
+            updateSelectionUI();
+
+            const grid = document.getElementById('seatGrid');
+            
+            // If the grid is empty or showing spinner, build it
+            if (grid.children.length === 0 || grid.querySelector('.spinner-border')) {
+                grid.innerHTML = '';
+                
+                // Group seats by row
+                const rows = {};
+                seats.forEach(s => {
+                    if (!rows[s.row]) rows[s.row] = [];
+                    rows[s.row].push(s);
+                });
+
+                Object.keys(rows).sort().forEach(rowKey => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'd-flex gap-2 align-items-center';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'row-label';
+                    label.innerText = rowKey;
+                    rowDiv.appendChild(label);
+
+                    rows[rowKey].sort((a,b) => a.number - b.number).forEach(seat => {
+                        const sDiv = document.createElement('div');
+                        sDiv.className = `seat ${seat.state.toLowerCase()}`;
+                        sDiv.innerText = seat.number;
+                        sDiv.setAttribute('data-seat-id', seat.id);
+                        sDiv.setAttribute('data-state', seat.state);
+                        sDiv.onclick = () => toggleSeat(seat.id, sDiv.getAttribute('data-state'));
+                        rowDiv.appendChild(sDiv);
+                    });
+
+                    grid.appendChild(rowDiv);
+                });
+            } else {
+                // In-place update: diff class and state to prevent flickering and maintain hover
+                seats.forEach(seat => {
+                    // Do not overwrite seats that are currently toggling in flight
+                    if (inFlightToggles.has(seat.id)) return;
+
+                    const sDiv = grid.querySelector(`.seat[data-seat-id="${seat.id}"]`);
+                    if (sDiv) {
+                        const currentState = sDiv.getAttribute('data-state');
+                        if (currentState !== seat.state) {
+                            sDiv.className = `seat ${seat.state.toLowerCase()}`;
+                            sDiv.setAttribute('data-state', seat.state);
+                        }
+                    }
+                });
+            }
+        }
+
+        function toggleSeat(id, state) {
+            if (state === 'Booked' || state === 'Locked') return;
+
+            // Ignore double clicks while a request is in flight for this seat
+            if (inFlightToggles.has(id)) return;
+
+            const seatDiv = document.querySelector(`.seat[data-seat-id="${id}"]`);
+            if (!seatDiv) return;
+
+            inFlightToggles.add(id);
+
+            // 1. Optimistic Update (instant, <1ms)
+            let revertedState = state;
+            if (state === 'Selected') {
+                seatDiv.className = 'seat available';
+                seatDiv.setAttribute('data-state', 'Available');
+                selectedSeats = selectedSeats.filter(s => s !== id);
+            } else if (state === 'Available') {
+                seatDiv.className = 'seat selected';
+                seatDiv.setAttribute('data-state', 'Selected');
+                selectedSeats.push(id);
+            }
+            updateSelectionUI();
+
+            // 2. Network Request (background)
+            fetch('/Booking/ToggleSeat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `screeningId=${screeningId}&seatId=${id}`
+            }).then(res => res.json())
+                .then(data => {
+                    inFlightToggles.delete(id);
+                    if (!data.success) {
+                        // Revert on failure
+                        if (revertedState === 'Selected') {
+                            seatDiv.className = 'seat selected';
+                            seatDiv.setAttribute('data-state', 'Selected');
+                            if (!selectedSeats.includes(id)) {
+                                selectedSeats.push(id);
+                            }
+                        } else if (revertedState === 'Available') {
+                            seatDiv.className = 'seat available';
+                            seatDiv.setAttribute('data-state', 'Available');
+                            selectedSeats = selectedSeats.filter(s => s !== id);
+                        }
+                        updateSelectionUI();
+                        alert("Could not lock/unlock seat. It may have just been taken.");
+                        updateUI();
+                    }
+                }).catch(err => {
+                    inFlightToggles.delete(id);
+                    // Revert on network error
+                    if (revertedState === 'Selected') {
+                        seatDiv.className = 'seat selected';
+                        seatDiv.setAttribute('data-state', 'Selected');
+                        if (!selectedSeats.includes(id)) {
+                            selectedSeats.push(id);
+                        }
+                    } else if (revertedState === 'Available') {
+                        seatDiv.className = 'seat available';
+                        seatDiv.setAttribute('data-state', 'Available');
+                        selectedSeats = selectedSeats.filter(s => s !== id);
+                    }
+                    updateSelectionUI();
+                    alert("Network error. Please check your connection.");
+                    updateUI();
+                });
+        }
+
+        function updateSelectionUI() {
+            document.getElementById('selectedCount').innerText = selectedSeats.length;
+            document.getElementById('totalPrice').innerText = `$${(selectedSeats.length * ticketPrice).toFixed(2)}`;
+            
+            const inputs = document.getElementById('selectedSeatsInputs');
+            inputs.innerHTML = '';
+            selectedSeats.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedSeatIds';
+                input.value = id;
+                inputs.appendChild(input);
+            });
+
+            const btn = document.getElementById('confirmBtn');
+            if (selectedSeats.length > 0) {
+                btn.classList.remove('disabled');
+            } else {
+                btn.classList.add('disabled');
+            }
+        }
+
+        // Timer Logic
+        const timerInterval = setInterval(() => {
+            if (timerSeconds > 0) {
+                timerSeconds--;
+                const m = Math.floor(timerSeconds / 60);
+                const s = timerSeconds % 60;
+                document.getElementById('countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            } else {
+                clearInterval(timerInterval);
+                alert("Session expired! Please refresh to start again.");
+                window.location.reload();
+            }
+        }, 1000);
+
+        // Initial Load and Polling
+        updateUI();
+        setInterval(updateUI, 2000); // Poll every 2 seconds for active sync
+    </script>
+}

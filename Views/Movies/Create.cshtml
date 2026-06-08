@@ -1,0 +1,85 @@
+@model CemaApp.ViewModels.MovieCreateViewModel
+
+@{
+    ViewData["Title"] = "Add New Movie";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg rounded-4 p-4" style="background-color: var(--bg-card); border: 1px solid #333;">
+                <h2 class="fw-bold mb-4">Add New Movie</h2>
+                
+                <form asp-action="Create" enctype="multipart/form-data" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <label asp-for="Title" class="form-label text-muted small fw-bold text-uppercase">Movie Title</label>
+                                <input asp-for="Title" class="form-control" placeholder="e.g., Inception" />
+                                <span asp-validation-for="Title" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label text-muted small fw-bold text-uppercase">Synopsis</label>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Brief movie description..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Genre" class="form-label text-muted small fw-bold text-uppercase">Genre</label>
+                                    <input asp-for="Genre" class="form-control" placeholder="e.g., Action" />
+                                    <span asp-validation-for="Genre" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="DurationMinutes" class="form-label text-muted small fw-bold text-uppercase">Duration (Min)</label>
+                                    <input asp-for="DurationMinutes" class="form-control" type="number" min="1" max="500" placeholder="120" />
+                                    <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label asp-for="ReleaseDate" class="form-label text-muted small fw-bold text-uppercase">Release Date</label>
+                                <input asp-for="ReleaseDate" class="form-control" type="date" />
+                                <span asp-validation-for="ReleaseDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="PosterImage" class="form-label text-muted small fw-bold text-uppercase">Movie Poster</label>
+                                <input type="file" asp-for="PosterImage" class="form-control" accept="image/*" />
+                                <span asp-validation-for="PosterImage" class="text-danger small"></span>
+                                <small class="text-info d-block mt-2">Required: JPG, PNG, or WebP format</small>
+                            </div>
+
+                             <div class="mb-4">
+                                <label asp-for="TrailerUrl" class="form-label text-muted small fw-bold text-uppercase">YouTube Trailer URL</label>
+                                <input asp-for="TrailerUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." />
+                                <span asp-validation-for="TrailerUrl" class="text-danger small"></span>
+                                <small class="text-info d-block mt-2">Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ</small>
+                            </div>
+
+                            <div class="alert alert-info" role="alert" style="background-color: #2b2b2b; border-color: #444; color: var(--text-muted);">
+                                <small><strong>Note:</strong> New movies are automatically set as Active.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4 border-top pt-4" style="border-color: #333 !important;">
+                        <button type="submit" class="btn btn-cema flex-fill">Create Movie</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

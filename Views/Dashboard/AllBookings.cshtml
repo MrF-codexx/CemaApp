@@ -1,0 +1,210 @@
+@model CemaApp.ViewModels.AdminBookingListViewModel
+@{
+    ViewData["Title"] = "All Bookings";
+}
+
+<style>
+    .dashboard-card {
+        background: #161616;
+        border: 1px solid #262626;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .table-dark-custom {
+        background: transparent;
+        margin: 0;
+    }
+    .table-dark-custom th {
+        background: #1a1a1a;
+        border-bottom: 1px solid #262626;
+        color: #8b8b8b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        padding: 16px 24px;
+    }
+    .table-dark-custom td {
+        padding: 16px 24px;
+        border-bottom: 1px solid #262626;
+        vertical-align: middle;
+        color: #e0e0e0;
+    }
+    .status-badge-sm {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .filter-panel {
+        background: #1a1a1a;
+        border: 1px solid #262626;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .form-control-dark, .form-select-dark {
+        background-color: #121212;
+        border: 1px solid #262626;
+        color: white;
+    }
+    .form-control-dark:focus, .form-select-dark:focus {
+        background-color: #121212;
+        border-color: #dc2626;
+        color: white;
+        box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+    }
+    .pending-countdown {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #f59e0b;
+        display: block;
+        margin-top: 4px;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold m-0">All Bookings</h1>
+        <span class="text-muted">Total Records: @Model.TotalRecords</span>
+    </div>
+
+    <!-- Filter/Search Panel -->
+    <div class="filter-panel">
+        <form method="get" asp-action="AllBookings" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label text-muted small text-uppercase">Search Movie</label>
+                <input type="text" name="searchMovieName" class="form-control form-control-dark" value="@Model.SearchMovieName" placeholder="Enter movie title...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small text-uppercase">Filter Status</label>
+                <select name="filterStatus" class="form-select form-select-dark">
+                    <option value="">All Statuses</option>
+                    <option value="Confirmed" selected="@(Model.FilterStatus == "Confirmed")">Confirmed</option>
+                    <option value="Cancelled" selected="@(Model.FilterStatus == "Cancelled")">Cancelled</option>
+                    <option value="Pending" selected="@(Model.FilterStatus == "Pending")">Pending</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small text-uppercase">Sort By</label>
+                <select name="sortBy" class="form-select form-select-dark">
+                    <option value="DateDesc" selected="@(Model.SortBy == "DateDesc" || string.IsNullOrEmpty(Model.SortBy))">Date (Newest First)</option>
+                    <option value="DateAsc" selected="@(Model.SortBy == "DateAsc")">Date (Oldest First)</option>
+                    <option value="TitleAsc" selected="@(Model.SortBy == "TitleAsc")">Movie Title (A-Z)</option>
+                    <option value="TitleDesc" selected="@(Model.SortBy == "TitleDesc")">Movie Title (Z-A)</option>
+                    <option value="PriceDesc" selected="@(Model.SortBy == "PriceDesc")">Price (High-Low)</option>
+                    <option value="PriceAsc" selected="@(Model.SortBy == "PriceAsc")">Price (Low-High)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-danger flex-grow-1">Apply</button>
+                @if (!string.IsNullOrEmpty(Model.SearchMovieName) || !string.IsNullOrEmpty(Model.FilterStatus) || (!string.IsNullOrEmpty(Model.SortBy) && Model.SortBy != "DateDesc"))
+                {
+                    <a asp-action="AllBookings" class="btn btn-outline-secondary" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+                }
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="dashboard-card mb-4">
+        <div class="table-responsive">
+            <table class="table table-dark-custom">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Movie</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in Model.Bookings)
+                    {
+                        <tr>
+                            <td>#@booking.Id</td>
+                            <td>@(booking.User?.Email ?? "Deleted User")</td>
+                            <td class="fw-bold">@booking.Screening.Movie.Title</td>
+                            <td class="small">@booking.BookingDate.ToString("MMM dd, HH:mm")</td>
+                            <td class="text-success fw-bold">@booking.TotalPrice.ToString("C")</td>
+                            <td>
+                                @if (booking.Status == CemaApp.Models.BookingStatus.Pending)
+                                {
+                                    var remainingSeconds = (int)(booking.BookingDate.AddMinutes(7) - DateTime.Now).TotalSeconds;
+                                    if (remainingSeconds < 0) { remainingSeconds = 0; }
+
+                                    <span class="status-badge-sm bg-warning-subtle text-warning">Pending</span>
+                                    <span class="pending-countdown" data-seconds="@remainingSeconds">--:--</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge-sm @(booking.Status == CemaApp.Models.BookingStatus.Confirmed ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                        @(booking.Status == CemaApp.Models.BookingStatus.RemovedByUser ? "Cancelled" : booking.Status.ToString())
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Bookings.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">No bookings match your criteria</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center" data-bs-theme="dark">
+                <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                    <a class="page-link bg-dark text-white border-secondary" 
+                       href="?searchMovieName=@Model.SearchMovieName&filterStatus=@Model.FilterStatus&sortBy=@Model.SortBy&page=@(Model.CurrentPage - 1)">Previous</a>
+                </li>
+                
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link @(i == Model.CurrentPage ? "bg-danger border-danger" : "bg-dark text-white border-secondary")" 
+                           href="?searchMovieName=@Model.SearchMovieName&filterStatus=@Model.FilterStatus&sortBy=@Model.SortBy&page=@i">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                    <a class="page-link bg-dark text-white border-secondary" 
+                       href="?searchMovieName=@Model.SearchMovieName&filterStatus=@Model.FilterStatus&sortBy=@Model.SortBy&page=@(Model.CurrentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Live countdown timers for pending bookings in admin view
+        document.querySelectorAll('.pending-countdown').forEach(timer => {
+            let seconds = parseInt(timer.dataset.seconds);
+
+            function tick() {
+                if (seconds <= 0) {
+                    timer.innerText = 'Expired';
+                    timer.style.color = '#ef4444';
+                    return;
+                }
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                timer.innerText = `⏱ ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                seconds--;
+            }
+
+            tick();
+            setInterval(tick, 1000);
+        });
+    </script>
+}
