@@ -22,13 +22,12 @@ namespace CemaApp.Services
             _logger = logger;
         }
 
-        public async Task<bool> LockSeatAsync(int screeningId, int seatId, string userId)
+        public async Task<bool> LockSeatAsync(int screeningId, int seatId, string clientSessionId)
         {
-            // Now handled in controller, but implemented to satisfy interface and DI cache update rule
-            return _seatCache.TryHold(screeningId, seatId, userId);
+            return _seatCache.TryHold(screeningId, seatId, clientSessionId);
         }
 
-        public async Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId, string sessionId)
+        public async Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId, string clientSessionId)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -38,7 +37,7 @@ namespace CemaApp.Services
                 // the second concurrent request will fail to release it and throw immediately.
                 foreach (var seatId in seatIds)
                 {
-                    if (!_seatCache.Release(screeningId, seatId, sessionId))
+                    if (!_seatCache.Release(screeningId, seatId, clientSessionId))
                     {
                         throw new SeatAlreadyBookedException("One of your selected seats is no longer held by your session. It may be processing or expired.");
                     }
@@ -94,9 +93,8 @@ namespace CemaApp.Services
             }
         }
 
-        public async Task<List<SeatDto>> GetSeatsWithStatusAsync(int screeningId, string userId)
+        public async Task<List<SeatDto>> GetSeatsWithStatusAsync(int screeningId, string clientSessionId)
         {
-            // userId here acts as sessionId due to the ToggleSeat logic changes
             var screening = await _context.Screenings
                 .Include(s => s.Hall)
                 .ThenInclude(h => h.Seats)
@@ -127,7 +125,7 @@ namespace CemaApp.Services
                     var key = $"{screeningId}_{seat.Id}";
                     if (allHolds.TryGetValue(key, out var hold) && hold.ExpiresAt > DateTime.UtcNow)
                     {
-                        if (hold.SessionId == userId) // userId is actually sessionId
+                        if (hold.SessionId == clientSessionId)
                         {
                             state = SeatState.Selected;
                         }

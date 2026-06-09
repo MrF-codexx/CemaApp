@@ -5,6 +5,15 @@
 }
 
 <div class="container py-4">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border border-danger shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="row">
         <!-- Sidebar: Movie Info -->
         <div class="col-md-3">
@@ -31,6 +40,7 @@
                         </div>
                         <form asp-action="ConfirmBooking" method="post">
                             <input type="hidden" name="screeningId" value="@Model.Id" />
+                            <input type="hidden" id="clientSessionIdInput" name="clientSessionId" value="" />
                             <div id="selectedSeatsInputs"></div>
                             <button type="submit" id="confirmBtn" class="btn btn-cema w-100 btn-lg disabled">Confirm Booking</button>
                         </form>
@@ -95,16 +105,37 @@
     </style>
 
     <script>
+        // Retrieve or generate a tab-unique clientSessionId using sessionStorage
+        let clientSessionId = sessionStorage.getItem('cema_client_session_id');
+        if (!clientSessionId) {
+            clientSessionId = (window.crypto && window.crypto.randomUUID) 
+                ? window.crypto.randomUUID() 
+                : 'csid_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+            sessionStorage.setItem('cema_client_session_id', clientSessionId);
+        }
+
+        // Set the hidden input field value for the confirm booking form post
+        document.getElementById('clientSessionIdInput').value = clientSessionId;
+
         const screeningId = @Model.Id;
         const ticketPrice = @Model.Price.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
         let selectedSeats = [];
-        let timerSeconds = @ViewBag.RemainingSeconds; // Calculated by server from existing pending booking
+        let timerSeconds = @ViewBag.RemainingSeconds;
         const inFlightToggles = new Set();
 
         function updateUI() {
-            fetch(`/Booking/GetSeats?screeningId=${screeningId}&_t=${new Date().getTime()}`, { cache: 'no-store' })
-                .then(res => res.json())
-                .then(data => renderGrid(data));
+            fetch(`/Booking/GetSeats?screeningId=${screeningId}&clientSessionId=${clientSessionId}&_t=${new Date().getTime()}`, { cache: 'no-store' })
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch seats");
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.remainingSeconds !== undefined) {
+                        timerSeconds = data.remainingSeconds;
+                    }
+                    renderGrid(data.seats);
+                })
+                .catch(err => console.error("Error updating UI:", err));
         }
 
         function renderGrid(seats) {
@@ -195,45 +226,33 @@
             fetch('/Booking/ToggleSeat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `screeningId=${screeningId}&seatId=${id}`
-            }).then(res => res.json())
-                .then(data => {
-                    inFlightToggles.delete(id);
-                    if (!data.success) {
-                        // Revert on failure
-                        if (revertedState === 'Selected') {
-                            seatDiv.className = 'seat selected';
-                            seatDiv.setAttribute('data-state', 'Selected');
-                            if (!selectedSeats.includes(id)) {
-                                selectedSeats.push(id);
-                            }
-                        } else if (revertedState === 'Available') {
-                            seatDiv.className = 'seat available';
-                            seatDiv.setAttribute('data-state', 'Available');
-                            selectedSeats = selectedSeats.filter(s => s !== id);
-                        }
-                        updateSelectionUI();
-                        alert("Could not lock/unlock seat. It may have just been taken.");
-                        updateUI();
+                body: `screeningId=${screeningId}&seatId=${id}&clientSessionId=${clientSessionId}`
+            }).then(res => {
+                if (!res.ok) {
+                    throw new Error("Lock failed or was already taken");
+                }
+                return res.json();
+            }).then(data => {
+                inFlightToggles.delete(id);
+                // Optimistic state successfully confirmed by server. No action needed.
+            }).catch(err => {
+                inFlightToggles.delete(id);
+                // Revert on failure
+                if (revertedState === 'Selected') {
+                    seatDiv.className = 'seat selected';
+                    seatDiv.setAttribute('data-state', 'Selected');
+                    if (!selectedSeats.includes(id)) {
+                        selectedSeats.push(id);
                     }
-                }).catch(err => {
-                    inFlightToggles.delete(id);
-                    // Revert on network error
-                    if (revertedState === 'Selected') {
-                        seatDiv.className = 'seat selected';
-                        seatDiv.setAttribute('data-state', 'Selected');
-                        if (!selectedSeats.includes(id)) {
-                            selectedSeats.push(id);
-                        }
-                    } else if (revertedState === 'Available') {
-                        seatDiv.className = 'seat available';
-                        seatDiv.setAttribute('data-state', 'Available');
-                        selectedSeats = selectedSeats.filter(s => s !== id);
-                    }
-                    updateSelectionUI();
-                    alert("Network error. Please check your connection.");
-                    updateUI();
-                });
+                } else if (revertedState === 'Available') {
+                    seatDiv.className = 'seat available';
+                    seatDiv.setAttribute('data-state', 'Available');
+                    selectedSeats = selectedSeats.filter(s => s !== id);
+                }
+                updateSelectionUI();
+                alert("Could not select/deselect seat. It may have just been locked or booked by someone else.");
+                updateUI();
+            });
         }
 
         function updateSelectionUI() {

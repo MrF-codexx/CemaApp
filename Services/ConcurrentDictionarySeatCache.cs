@@ -15,8 +15,47 @@ namespace CemaApp.Services
         public bool TryHold(int screeningId, int seatId, string sessionId)
         {
             var key = $"{screeningId}_{seatId}";
-            var hold = new SeatHold(sessionId, DateTime.UtcNow.AddMinutes(LOCK_MINUTES));
-            return _cache.TryAdd(key, hold);
+            var now = DateTime.UtcNow;
+            var newHold = new SeatHold(sessionId, now.AddMinutes(LOCK_MINUTES));
+
+            while (true)
+            {
+                if (_cache.TryGetValue(key, out var existingHold))
+                {
+                    // If it is expired, we can replace it.
+                    if (existingHold.ExpiresAt < now)
+                    {
+                        if (_cache.TryUpdate(key, newHold, existingHold))
+                        {
+                            return true;
+                        }
+                        // TryUpdate failed (concurrency race), retry
+                        continue;
+                    }
+
+                    // If it is not expired and held by the SAME session, renew/keep it.
+                    if (existingHold.SessionId == sessionId)
+                    {
+                        if (_cache.TryUpdate(key, newHold, existingHold))
+                        {
+                            return true;
+                        }
+                        continue;
+                    }
+
+                    // Held by someone else and not expired
+                    return false;
+                }
+                else
+                {
+                    // No hold exists, try to add
+                    if (_cache.TryAdd(key, newHold))
+                    {
+                        return true;
+                    }
+                    // TryAdd failed, someone else just added it, retry
+                }
+            }
         }
 
         public bool Release(int screeningId, int seatId, string sessionId)
@@ -24,7 +63,8 @@ namespace CemaApp.Services
             var key = $"{screeningId}_{seatId}";
             if (_cache.TryGetValue(key, out var hold) && hold.SessionId == sessionId)
             {
-                return _cache.TryRemove(key, out _);
+                var collection = (ICollection<KeyValuePair<string, SeatHold>>)_cache;
+                return collection.Remove(new KeyValuePair<string, SeatHold>(key, hold));
             }
             return false;
         }
