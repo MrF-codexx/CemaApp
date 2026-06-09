@@ -33,13 +33,14 @@ namespace CemaApp.Services
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Verify that every single seat is actively held in the memory cache by THIS EXACT session!
-                // This strictly guarantees that no one can bypass the frontend and double book!
+                // Verify and CONSUME the hold atomically!
+                // By Releasing it here, we guarantee that if a user double-clicks 'Confirm',
+                // the second concurrent request will fail to release it and throw immediately.
                 foreach (var seatId in seatIds)
                 {
-                    if (!_seatCache.IsHeldBy(screeningId, seatId, sessionId))
+                    if (!_seatCache.Release(screeningId, seatId, sessionId))
                     {
-                        throw new SeatAlreadyBookedException("One of your selected seats is no longer held by your session. It may have expired.");
+                        throw new SeatAlreadyBookedException("One of your selected seats is no longer held by your session. It may be processing or expired.");
                     }
                 }
 

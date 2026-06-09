@@ -68,7 +68,6 @@ namespace CemaApp.Controllers
             return Ok(new { message = "held", success = true });
         }
 
-        // Page to show seat selection
         [HttpGet]
         public async Task<IActionResult> SelectSeats(int screeningId)
         {
@@ -79,18 +78,17 @@ namespace CemaApp.Controllers
 
             if (screening == null) return NotFound();
 
-            // Check if there is an existing pending booking for this user and screening
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var pendingBooking = await _context.Bookings
-                .FirstOrDefaultAsync(b => b.ScreeningId == screeningId
-                                       && b.UserId == userId
-                                       && b.Status == BookingStatus.Pending);
+            var sessionId = HttpContext.Session.Id;
+            var holds = _seatCache.GetAllHolds()
+                .Where(kvp => kvp.Key.StartsWith($"{screeningId}_") && kvp.Value.SessionId == sessionId)
+                .ToList();
 
-            int remainingSeconds = 420; // Default 7 minutes for new sessions
-            if (pendingBooking != null)
+            int remainingSeconds = 420; // Default 7 minutes
+            if (holds.Any())
             {
-                var elapsed = (DateTime.Now - pendingBooking.BookingDate).TotalSeconds;
-                remainingSeconds = Math.Max(0, 420 - (int)elapsed);
+                var oldestHold = holds.Min(h => h.Value.ExpiresAt);
+                var elapsed = (oldestHold - DateTime.UtcNow).TotalSeconds;
+                remainingSeconds = Math.Max(0, (int)elapsed);
             }
 
             ViewBag.RemainingSeconds = remainingSeconds;
