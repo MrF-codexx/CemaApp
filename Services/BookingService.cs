@@ -28,11 +28,21 @@ namespace CemaApp.Services
             return _seatCache.TryHold(screeningId, seatId, userId);
         }
 
-        public async Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId)
+        public async Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId, string sessionId)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // Verify that every single seat is actively held in the memory cache by THIS EXACT session!
+                // This strictly guarantees that no one can bypass the frontend and double book!
+                foreach (var seatId in seatIds)
+                {
+                    if (!_seatCache.IsHeldBy(screeningId, seatId, sessionId))
+                    {
+                        throw new SeatAlreadyBookedException("One of your selected seats is no longer held by your session. It may have expired.");
+                    }
+                }
+
                 var screening = await _context.Screenings.FindAsync(screeningId);
                 if (screening == null) return false;
 

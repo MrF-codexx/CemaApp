@@ -5,7 +5,7 @@ namespace CemaApp.Services
     public interface IBookingService
     {
         Task<bool> LockSeatAsync(int screeningId, int seatId, string userId);
-        Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId);
+        Task<bool> ConfirmBookingAsync(int screeningId, List<int> seatIds, string userId, string sessionId);
         Task<List<SeatDto>> GetSeatsWithStatusAsync(int screeningId, string userId);
         Task CleanExpiredPendingBookingsAsync();
     }

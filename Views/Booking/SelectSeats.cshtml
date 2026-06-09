@@ -102,7 +102,7 @@
         const inFlightToggles = new Set();
 
         function updateUI() {
-            fetch(`/Booking/GetSeats?screeningId=${screeningId}`)
+            fetch(`/Booking/GetSeats?screeningId=${screeningId}&_t=${new Date().getTime()}`, { cache: 'no-store' })
                 .then(res => res.json())
                 .then(data => renderGrid(data));
         }

@@ -102,9 +102,10 @@ namespace CemaApp.Controllers
         public async Task<IActionResult> ConfirmBooking(int screeningId, List<int> selectedSeatIds)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var sessionId = HttpContext.Session.Id;
             try
             {
-                var success = await _bookingService.ConfirmBookingAsync(screeningId, selectedSeatIds, userId);
+                var success = await _bookingService.ConfirmBookingAsync(screeningId, selectedSeatIds, userId, sessionId);
 
                 if (success)
                 {
