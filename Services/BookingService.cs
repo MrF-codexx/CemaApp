@@ -31,6 +31,7 @@ namespace CemaApp.Services
                     if (_context.Database.IsSqlServer())
                     {
                         var lockName = $"LockSeat:{screeningId}:{seatId}";
+                        var resourceParam = new SqlParameter("@Resource", lockName);
                         var resultParam = new SqlParameter
                         {
                             ParameterName = "@Result",
@@ -39,10 +40,11 @@ namespace CemaApp.Services
                         };
 
                         await _context.Database.ExecuteSqlRawAsync(
-                            "EXEC @Result = sp_getapplock @Resource = {0}, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 5000",
-                            resultParam, lockName);
+                            "EXEC @Result = sp_getapplock @Resource = @Resource, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 5000",
+                            resultParam, resourceParam);
 
-                        int result = (int)(resultParam.Value ?? -1);
+                        var value = resultParam.Value;
+                        int result = (value == null || value == DBNull.Value) ? -1 : (int)value;
                         if (result < 0)
                         {
                             await transaction.RollbackAsync();
@@ -208,9 +210,25 @@ namespace CemaApp.Services
                         foreach (var seatId in seatIds)
                         {
                             var lockName = $"LockSeat:{screeningId}:{seatId}";
+                            var resourceParam = new SqlParameter("@Resource", lockName);
+                            var resultParam = new SqlParameter
+                            {
+                                ParameterName = "@Result",
+                                SqlDbType = System.Data.SqlDbType.Int,
+                                Direction = System.Data.ParameterDirection.Output
+                            };
+
                             await _context.Database.ExecuteSqlRawAsync(
-                                "EXEC sp_getapplock @Resource = {0}, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 5000",
-                                lockName);
+                                "EXEC @Result = sp_getapplock @Resource = @Resource, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 5000",
+                                resultParam, resourceParam);
+
+                            var value = resultParam.Value;
+                            int result = (value == null || value == DBNull.Value) ? -1 : (int)value;
+                            if (result < 0)
+                            {
+                                await transaction.RollbackAsync();
+                                return false; // Failed to acquire lock
+                            }
                         }
                     }
 
