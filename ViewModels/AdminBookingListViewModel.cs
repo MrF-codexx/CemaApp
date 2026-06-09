@@ -6,15 +6,9 @@ namespace CemaApp.ViewModels
     public class AdminBookingListViewModel
     {
         public IEnumerable<Booking> Bookings { get; set; } = new List<Booking>();
-        
-        // Search & Filter
         public string? SearchMovieName { get; set; }
-        public string? FilterStatus { get; set; }
-        
-        // Sorting
-        public string? SortBy { get; set; }
-        
-        // Pagination
+        public string? FilterStatus { get; set; }  
+        public string? SortBy { get; set; } 
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; }
         public int TotalRecords { get; set; }

@@ -25,7 +25,6 @@ namespace CemaApp.Models
 
         public bool IsActive { get; set; } = true;
 
-        // Navigation
         public ICollection<Screening> Screenings { get; set; } = new List<Screening>();
     }
 }

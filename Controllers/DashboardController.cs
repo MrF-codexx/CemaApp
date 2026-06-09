@@ -50,7 +50,6 @@ namespace CemaApp.Controllers
             }
 
             // 3. Average Occupancy Rate
-            // (Total booked seats / Total capacity across all screenings)
             var totalBookedSeats = await _context.BookingSeats
                 .CountAsync(bs => bs.Booking.Status == BookingStatus.Confirmed);
 
@@ -84,7 +83,6 @@ namespace CemaApp.Controllers
 
         public async Task<IActionResult> AllBookings(string? searchMovieName, string? filterStatus, string? sortBy, int page = 1)
         {
-            // Auto-delete expired pending bookings
             await _bookingService.CleanExpiredPendingBookingsAsync();
 
             var pageSize = 10;

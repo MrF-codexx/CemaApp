@@ -7,12 +7,6 @@ namespace CemaApp.Models
     [Table("User")]
     public class ApplicationUser : IdentityUser
     {
-        // Identity already provides:
-        // - Id (string)
-        // - Email
-        // - PasswordHash (secure)
-        // - PhoneNumber
-        // - EmailConfirmed
         [Required]
         public string FullName { get; set; } = string.Empty;
         [Required]

@@ -15,9 +15,8 @@ namespace CemaApp.Models
 
         public decimal Price { get; set; }
 
-        // Navigation
         public Movie? Movie { get; set; }
         public Hall? Hall { get; set; }
-        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>(); 
     }
 }

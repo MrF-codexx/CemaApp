@@ -40,7 +40,6 @@ namespace CemaApp.Controllers
             return Json(new { success });
         }
 
-        // Page to show seat selection
         [HttpGet]
         public async Task<IActionResult> SelectSeats(int screeningId)
         {

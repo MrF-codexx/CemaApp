@@ -78,13 +78,12 @@ namespace CemaApp.Data
 
         public static async Task SeedSampleDataAsync(AppDbContext context, UserManager<ApplicationUser> userManager)
         {
-            // 1. Check if we've already seeded any movies
             if (context.Movies.Any())
             {
-                return; // Already seeded, skip everything!
+                return; // skip seeding if movies exist
             }
 
-            // 3. SEED USERS
+            // Seed Users
             var users = new List<ApplicationUser>();
             string[] testEmails = { "john@cema.com", "sarah@cema.com", "mike@cema.com", "emma@cema.com" };
             foreach (var email in testEmails)
@@ -107,7 +106,7 @@ namespace CemaApp.Data
                 if (dbUser != null) users.Add(dbUser);
             }
 
-            // 4. SEED HALLS AND SEATS
+            // Seed Halls and Seats
             var halls = new List<Hall>
             {
                 new Hall { Name = "IMAX 1", TotalRows = 10, SeatsPerRow = 15 },
@@ -135,7 +134,7 @@ namespace CemaApp.Data
             }
             await context.SaveChangesAsync();
 
-            // 5. SEED MOVIES from data.json
+            // Seed Movies from data.json
             var movies = new List<Movie>();
             var dataJsonPath = Path.Combine(Directory.GetCurrentDirectory(), "data.json");
             
@@ -168,7 +167,7 @@ namespace CemaApp.Data
                             ReleaseDate = parsedDate != default ? parsedDate : DateTime.Now,
                             PosterUrl = !string.IsNullOrEmpty(item.PosterPath) ? $"https://image.tmdb.org/t/p/w500{item.PosterPath}" : null,
                             Genre = genre,
-                            DurationMinutes = new Random().Next(90, 150), // Random duration since TMDB result doesn't have it here
+                            DurationMinutes = new Random().Next(90, 150), 
                             TrailerUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ", // Dummy trailer
                             IsActive = true
                         });
@@ -187,17 +186,16 @@ namespace CemaApp.Data
                 return;
             }
 
-            // 6. SEED SCREENINGS
+            // Seed Screenings
             var screenings = new List<Screening>();
             Random rand = new Random();
             foreach (var movie in movies)
             {
-                for (int i = 0; i < 3; i++) // 3 screenings per movie
+                for (int i = 0; i < 3; i++) 
                 {
                     var hall = halls[rand.Next(halls.Count)];
 
-                    // Assign pricing dynamically based on the hall type
-                    decimal price = 12.00m; // Default Standard price
+                    decimal price = 12.00m; // Standard price
                     if (hall.Name.Contains("IMAX"))
                     {
                         price = 18.00m;
@@ -219,43 +217,6 @@ namespace CemaApp.Data
             context.Screenings.AddRange(screenings);
             await context.SaveChangesAsync();
 
-            // 7. SEED BOOKINGS
-            var allSeats = await context.Seats.ToListAsync();
-            foreach (var user in users)
-            {
-                int numberOfBookings = rand.Next(1, 4);
-                for (int i = 0; i < numberOfBookings; i++)
-                {
-                    var screening = screenings[rand.Next(screenings.Count)];
-                    var booking = new Booking
-                    {
-                        UserId = user.Id,
-                        ScreeningId = screening.Id,
-                        BookingDate = DateTime.Now.AddDays(-rand.Next(1, 5)),
-                        TotalPrice = screening.Price * 2, // Assume 2 seats
-                        Status = BookingStatus.Confirmed // Set to Confirmed so they don't get auto-deleted immediately by the cache purge
-                    };
-                    context.Bookings.Add(booking);
-                    await context.SaveChangesAsync();
-
-                    // Add 2 UNIQUE random seats to this booking
-                    var hallSeats = allSeats.Where(s => s.HallId == screening.HallId).ToList();
-                    if (hallSeats.Count >= 2)
-                    {
-                        // Use OrderBy Guid to shuffle and pick 2 distinct seats
-                        var selectedSeats = hallSeats.OrderBy(x => Guid.NewGuid()).Take(2).ToList();
-                        foreach (var seat in selectedSeats)
-                        {
-                            context.BookingSeats.Add(new BookingSeat
-                            {
-                                BookingId = booking.Id,
-                                SeatId = seat.Id
-                            });
-                        }
-                        await context.SaveChangesAsync();
-                    }
-                }
-            }
         }
     }
 }

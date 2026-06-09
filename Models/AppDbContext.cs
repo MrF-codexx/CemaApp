@@ -70,13 +70,13 @@ namespace CemaApp.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // Unique constraint: Can't have duplicate seat in same hall
+            //  can't have duplicate seat in same hall
             modelBuilder.Entity<Seat>()
                 .HasIndex(s => new { s.HallId, s.Row, s.Number })
                 .IsUnique();
 
 
-            // EF requires explicit configuration for decimal properties
+            //  configuration for decimal properties
             modelBuilder.Entity<Screening>()
             .Property(s => s.Price)
             .HasColumnType("decimal(18,2)");

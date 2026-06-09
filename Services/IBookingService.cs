@@ -15,7 +15,7 @@ namespace CemaApp.Services
         public int Id { get; set; }
         public string Row { get; set; }
         public int Number { get; set; }
-        public string State { get; set; } // "Available", "Selected", "Locked", "Booked"
+        public string State { get; set; } 
     }
 
     public enum SeatState

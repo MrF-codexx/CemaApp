@@ -27,7 +27,6 @@ namespace CemaApp.Controllers
         // GET: Bookings (User's History & Profile)
         public async Task<IActionResult> Index()
         {
-            // Clean expired pending bookings first
             await _bookingService.CleanExpiredPendingBookingsAsync();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -102,10 +101,9 @@ namespace CemaApp.Controllers
 
             if (booking == null) return NotFound();
 
-            // Only allow cancellation if status is not already Cancelled
+           
             if (booking.Status != BookingStatus.Cancelled)
             {
-                // Release memory cache locks for all seats associated with this booking
                 foreach (var bs in booking.BookingSeats)
                 {
                     var cacheKey = $"SeatLock:{booking.ScreeningId}:{bs.SeatId}";

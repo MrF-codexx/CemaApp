@@ -10,11 +10,8 @@ namespace CemaApp.Models
 
         public int HallId { get; set; }
 
-        public string Row { get; set; } = string.Empty; // A, B, C...
-
-        public int Number { get; set; } // 1, 2, 3...
-
-        // Navigation
+        public string Row { get; set; } = string.Empty; 
+        public int Number { get; set; } 
         public Hall? Hall { get; set; }
         public ICollection<BookingSeat> BookingSeats { get; set; } = new List<BookingSeat>();
     }

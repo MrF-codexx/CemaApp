@@ -12,7 +12,6 @@ namespace CemaApp.Models
 
         public int SeatId { get; set; }
 
-        // Navigation
         public Booking? Booking { get; set; }
         public Seat? Seat { get; set; }
     }

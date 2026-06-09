@@ -98,9 +98,9 @@
         const screeningId = @Model.Id;
         const ticketPrice = @Model.Price.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
         let selectedSeats = [];
-        let timerSeconds = @ViewBag.RemainingSeconds; // Calculated by server from existing pending booking
+        let timerSeconds = @ViewBag.RemainingSeconds;
         const inFlightToggles = new Set();
-        const lastToggleTime = {}; // seatId -> timestamp (ms)
+        const lastToggleTime = {}; 
 
         function updateUI() {
             fetch(`/Booking/GetSeats?screeningId=${screeningId}`)
@@ -109,11 +109,9 @@
         }
 
         function renderGrid(seats) {
-            // Update selectedSeats list based on server state, but preserve any active in-flight or recently-toggled selections
-            const nonProtectedSeats = seats.filter(s => !inFlightToggles.has(s.id) && (Date.now() - (lastToggleTime[s.id] || 0) >= 3000));
+             const nonProtectedSeats = seats.filter(s => !inFlightToggles.has(s.id) && (Date.now() - (lastToggleTime[s.id] || 0) >= 3000));
             const serverSelected = nonProtectedSeats.filter(s => s.state === 'Selected').map(s => s.id);
             
-            // Retain any seats that are in-flight or were recently toggled by the user
             const protectedSelected = selectedSeats.filter(id => inFlightToggles.has(id) || (Date.now() - (lastToggleTime[id] || 0) < 3000));
             
             selectedSeats = [...new Set([...serverSelected, ...protectedSelected])];
