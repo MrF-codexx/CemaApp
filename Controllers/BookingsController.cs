@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CemaApp.Controllers
 {
@@ -14,14 +16,14 @@ namespace CemaApp.Controllers
         private readonly AppDbContext _context;
         private readonly Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> _userManager;
         private readonly IBookingService _bookingService;
-        private readonly IMemoryCache _cache;
+        private readonly ISeatReservationCache _seatCache;
 
-        public BookingsController(AppDbContext context, Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager, IBookingService bookingService, IMemoryCache cache)
+        public BookingsController(AppDbContext context, Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager, IBookingService bookingService, ISeatReservationCache seatCache)
         {
             _context = context;
             _userManager = userManager;
             _bookingService = bookingService;
-            _cache = cache;
+            _seatCache = seatCache;
         }
 
         // GET: Bookings (User's History & Profile)
@@ -108,8 +110,7 @@ namespace CemaApp.Controllers
                 // Release memory cache locks for all seats associated with this booking
                 foreach (var bs in booking.BookingSeats)
                 {
-                    var cacheKey = $"SeatLock:{booking.ScreeningId}:{bs.SeatId}";
-                    _cache.Remove(cacheKey);
+                    _seatCache.ForceRelease(booking.ScreeningId, bs.SeatId);
                 }
 
                 booking.Status = BookingStatus.Cancelled;

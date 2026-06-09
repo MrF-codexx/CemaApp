@@ -1,5 +1,6 @@
 using CemaApp.Data;
 using CemaApp.Models;
+using CemaApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,13 +37,15 @@ namespace CemaApp
             builder.Services.AddControllersWithViews();
 
             // 4. In-Memory Storage (Added for fast seat locking)
-            builder.Services.AddMemoryCache();
+            builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(20); // Session timeout
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+            builder.Services.AddSingleton<ISeatReservationCache, ConcurrentDictionarySeatCache>();
+            builder.Services.AddHostedService<SeatHoldPurgeService>();
 
             builder.Services.AddScoped<CemaApp.Services.IBookingService, CemaApp.Services.BookingService>();
 
@@ -93,6 +96,17 @@ namespace CemaApp
 
             // Enable Session middleware
             app.UseSession();
+
+            app.Use(async (ctx, next) =>
+            {
+                await ctx.Session.LoadAsync();
+                if (!ctx.Session.Keys.Contains("_sid_init"))
+                {
+                    ctx.Session.SetString("_sid_init", "1");
+                    await ctx.Session.CommitAsync();
+                }
+                await next();
+            });
 
             app.UseAuthentication();
 
