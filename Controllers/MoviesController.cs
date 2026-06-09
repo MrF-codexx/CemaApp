@@ -25,7 +25,7 @@ namespace CemaApp.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 var trimmedSearch = searchString.Trim();
-                query = query.Where(m => m.Title.Contains(trimmedSearch) || m.Description.Contains(trimmedSearch));
+                query = query.Where(m => m.Title.Contains(trimmedSearch));
             }
 
             if (!string.IsNullOrEmpty(genre))

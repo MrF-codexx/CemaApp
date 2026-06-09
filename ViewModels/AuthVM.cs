@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CemaApp.ViewModels
 {
@@ -16,7 +16,7 @@ namespace CemaApp.ViewModels
             public bool RememberMe { get; set; }
         }
 
-        public class RegisterViewModel
+        public class RegisterViewModel : IValidatableObject
         {
             [Required]
             [Display(Name = "Full Name")]
@@ -40,5 +40,13 @@ namespace CemaApp.ViewModels
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (DateOfBirth > DateTime.Today)
+                {
+                    yield return new ValidationResult("Date of Birth cannot be in the future.", new[] { nameof(DateOfBirth) });
+                }
+            }
         }
 }

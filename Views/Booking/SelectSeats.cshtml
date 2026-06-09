@@ -220,7 +220,7 @@
                             selectedSeats = selectedSeats.filter(s => s !== id);
                         }
                         updateSelectionUI();
-                        alert("Could not lock/unlock seat. It may have just been taken.");
+                        alert("This seat is already taken");
                         updateUI();
                     }
                 }).catch(err => {
@@ -275,8 +275,8 @@
                 document.getElementById('countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             } else {
                 clearInterval(timerInterval);
-                alert("Session expired! Please refresh to start again.");
-                window.location.reload();
+                alert("Your booking session has expired! You will be redirected to the movies page.");
+                window.location.href = '/Movies';
             }
         }, 1000);
 

@@ -1,21 +1,17 @@
-﻿@model CemaApp.ViewModels.RegisterViewModel
+@model CemaApp.ViewModels.RegisterViewModel
 
 @{
     ViewData["Title"] = "Register";
 }
 
 <style>
-    body {
-        background: #0f0f0f;
-        font-family: 'Segoe UI', sans-serif;
-        color: white;
-    }
-
     .register-container {
         min-height: 85vh;
         display: flex;
         justify-content: center;
         align-items: center;
+        padding-top: 40px;
+        padding-bottom: 40px;
     }
 
     .register-card {
@@ -84,15 +80,6 @@
         font-size: 14px;
     }
 
-    .register-container {
-        min-height: 85vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding-top: 40px;
-        padding-bottom: 40px;
-    }
-
     input[type="date"] {
         color-scheme: dark; /* Ensures the native picker text stays legible */
     }
@@ -126,7 +113,7 @@
 
             <div class="mb-3">
                 <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" class="form-control" />
+                <input asp-for="DateOfBirth" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
             </div>
 

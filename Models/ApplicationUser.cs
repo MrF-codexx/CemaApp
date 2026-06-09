@@ -14,13 +14,13 @@ namespace CemaApp.Models
         // - PhoneNumber
         // - EmailConfirmed
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
         [Required]
 
         public DateTime DateOfBirth { get; set; }
 
         // Navigation properties
-        public ICollection<Booking> Bookings { get; set; }
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
 
     }

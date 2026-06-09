@@ -37,12 +37,6 @@ namespace CemaApp
 
             // 4. In-Memory Storage (Added for fast seat locking)
             builder.Services.AddMemoryCache();
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(20); // Session timeout
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-            });
 
             builder.Services.AddScoped<CemaApp.Services.IBookingService, CemaApp.Services.BookingService>();
 
@@ -91,8 +85,7 @@ namespace CemaApp
 
             app.UseRouting();
 
-            // Enable Session middleware
-            app.UseSession();
+
 
             app.UseAuthentication();
 

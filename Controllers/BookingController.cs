@@ -62,7 +62,13 @@ namespace CemaApp.Controllers
             if (pendingBooking != null)
             {
                 var elapsed = (DateTime.Now - pendingBooking.BookingDate).TotalSeconds;
-                remainingSeconds = Math.Max(0, 420 - (int)elapsed);
+                if (elapsed >= 420)
+                {
+                    await _bookingService.CleanExpiredPendingBookingsAsync();
+                    TempData["ErrorMessage"] = "Your booking session has expired. Please select a movie to start again.";
+                    return RedirectToAction("Index", "Movies");
+                }
+                remainingSeconds = 420 - (int)elapsed;
             }
 
             ViewBag.RemainingSeconds = remainingSeconds;
@@ -83,6 +89,18 @@ namespace CemaApp.Controllers
                     return RedirectToAction("Index", "Dashboard");
                 }
                 return RedirectToAction("Index", "Bookings");
+            }
+
+            // Check if the pending booking session has expired
+            var pendingBooking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.ScreeningId == screeningId
+                                       && b.UserId == userId
+                                       && b.Status == BookingStatus.Pending);
+
+            if (pendingBooking == null || pendingBooking.BookingDate.AddMinutes(7) < DateTime.Now)
+            {
+                TempData["ErrorMessage"] = "Your booking session has expired. Please select a movie to start again.";
+                return RedirectToAction("Index", "Movies");
             }
 
             ModelState.AddModelError("", "Could not confirm booking. Your selection may have expired.");
